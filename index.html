@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ATS Blocks — Phaser</title>
+  <title>ATSsemble — Tetris Inspired</title>
   <style>
     html, body { height: 100%; margin: 0; background: #0e0f12; display: grid; place-items: center; }
     #game-container { box-shadow: 0 10px 30px rgba(0,0,0,.35); border-radius: 12px; overflow: hidden; }
@@ -271,7 +271,7 @@
       for(let y=0;y<=ROWS;y++) gl.lineBetween(gx(0), gy(y), gx(COLS), gy(y));
 
       // UI texts
-      this.title = this.add.text(MARGIN+8, MARGIN+8, 'ATS Blocks', {fontSize:22, color:'#e7e9ee'}).setDepth(3);
+      this.title = this.add.text(MARGIN+8, MARGIN+8, 'ATSsemble', {fontSize:22, color:'#e7e9ee'}).setDepth(3);
       this.scoreText = this.add.text(MARGIN+8, MARGIN+46, 'Score: 0', {fontSize:16, color:'#e7e9ee'}).setDepth(3);
       this.bestText  = this.add.text(MARGIN+140, MARGIN+46, `Best: ${this.best}`, {fontSize:16, color:'#e7e9ee'}).setDepth(3);
 
@@ -350,11 +350,24 @@
     postLockContinue(){
       if(this.gameOver) return;
       this.lockCount++;
-      // Use a dynamic interval for garbage row
+      // Find the highest filled row
+      let highestRow = 0;
+      for(let y=0; y<ROWS; y++) {
+        if(this.grid[y].some(cell => cell !== null)) {
+          highestRow = y;
+          break;
+        }
+      }
+      // Use a dynamic interval for garbage row, less frequent if stack is low
       if (!this.nextGarbageInterval) {
         this.nextGarbageInterval = 12 + Math.floor(Math.random() * 5); // 12-16
       }
-      if(this.lockCount % this.nextGarbageInterval === 0){
+      let interval = this.nextGarbageInterval;
+      const lowStackThreshold = 10; // Change this value for desired height
+      if (highestRow < lowStackThreshold) {
+        interval *= 2; // Garbage appears half as often when stack is low
+      }
+      if(this.lockCount % interval === 0){
         // After adding garbage, randomize the next interval
         this.addGarbageRow(()=> {
           this.nextGarbageInterval = 12 + Math.floor(Math.random() * 5);
@@ -376,11 +389,23 @@
           if(cell?.obj){ this.tweens.add({targets:cell.obj, y: gy(y)+CELL/2, duration:120}); }
         }
       }
-      // new bottom row with one random hole
+      // new bottom row with holes, fewer as score increases
       const junk = ['D','E','I','O','N','R','X','Z','Q'];
-      const hole = Math.floor(Math.random()*COLS);
+      // Max holes decreases as score increases (min 1, max 5)
+      let maxHoles = 5;
+      if (this.score > 4000) maxHoles = 1;
+      else if (this.score > 3000) maxHoles = 2;
+      else if (this.score > 2000) maxHoles = 3;
+      else if (this.score > 1000) maxHoles = 4;
+      // Always at least 1 hole
+      const numHoles = 1 + Math.floor(Math.random() * maxHoles);
+      const holeIndices = [];
+      while (holeIndices.length < numHoles) {
+        const idx = Math.floor(Math.random() * COLS);
+        if (!holeIndices.includes(idx)) holeIndices.push(idx);
+      }
       for(let x=0;x<COLS;x++){
-        if(x===hole){ this.grid[ROWS-1][x] = null; continue; }
+        if(holeIndices.includes(x)){ this.grid[ROWS-1][x] = null; continue; }
         const letter = junk[Math.floor(Math.random()*junk.length)];
         this.createLocked(letter, x, ROWS-1);
       }
