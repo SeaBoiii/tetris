@@ -748,8 +748,8 @@
       // Ramp dropInterval down as score or lockCount rises (faster drop)
       // You can tune the formula as needed for difficulty
       const minInterval = 150;
-      // Example: base 700ms, minus 10ms per lock, minus 1ms per 10 score, never below minInterval
-      this.dropInterval = Math.max(minInterval, 700 - this.lockCount * 10 - Math.floor(this.score / 10));
+      // Example: base 700ms, minus 5ms per lock, minus 1ms per 50 score, never below minInterval
+      this.dropInterval = Math.max(minInterval, 700 - this.lockCount * 5 - Math.floor(this.score / 50));
       this.dropTimer += dt;
       if(this.dropTimer >= this.dropInterval){
         this.dropTimer = 0;
