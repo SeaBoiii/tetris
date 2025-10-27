@@ -88,10 +88,29 @@
       let query = supa.from('scores').select('name,score,created_at');
       const since = periodSince(period);
       if (since) query = query.gte('created_at', since);
-      const { data, error } = await query.order('score',{ascending:false}).limit(limit);
+      // Fetch more records initially to account for deduplication
+      const { data, error } = await query.order('score',{ascending:false}).limit(limit * 3);
       if (error) return { ok:false, rows:[] };
-      return { ok:true, rows: data||[] };
+      // Deduplicate by name and then limit to requested amount
+      const deduplicated = deduplicateScoresByName(data||[]);
+      return { ok:true, rows: deduplicated.slice(0, limit) };
     } catch(e){ return { ok:false, rows:[] }; }
+  }
+
+  // --- Deduplication helper ---
+  function deduplicateScoresByName(rows){
+    if(!rows || rows.length === 0) return rows;
+    const nameMap = new Map();
+    // Keep the highest score for each name
+    rows.forEach(row => {
+      const name = row.name || 'anon';
+      const existing = nameMap.get(name);
+      if (!existing || row.score > existing.score) {
+        nameMap.set(name, row);
+      }
+    });
+    // Convert back to array and sort by score descending
+    return Array.from(nameMap.values()).sort((a, b) => b.score - a.score);
   }
 
   // --- Local leaderboard fallback (always available) ---
