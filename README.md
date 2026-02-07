@@ -4,7 +4,7 @@ A unique twist on the classic Tetris game where instead of clearing lines, you m
 
 ## 🎮 Play Now
 
-The game is playable at: `https://seaboiii.github.io/tetris/`
+[Play the game](https://seaboiii.github.io/tetris/)
 
 ## 🎯 Game Objective
 
@@ -90,7 +90,7 @@ To enable the online leaderboard feature:
 
 ### Letter Blocks
 - **A** (Blue): First letter in ATS sequence
-- **T** (Orange): Second letter in ATS sequence  
+- **T** (Orange): Second letter in ATS sequence
 - **S** (Green): Third letter in ATS sequence
 
 ### Special Blocks
